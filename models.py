@@ -8,6 +8,7 @@ class User(UserMixin, Model):
     email = CharField(unique=True)
     password = CharField()
     image = CharField ()
+    diet = CharField ()
     
     class Meta:
         database = DATABASE
