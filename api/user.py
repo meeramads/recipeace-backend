@@ -75,3 +75,14 @@ def get_one_user(id):
 
     return jsonify(data=model_to_dict(user_by_id), status={"code": 200, "message": "Success"})
 
+@user.route('/<id>', methods=["PUT"])
+def update_user(id):
+    payload = request.get_json()
+
+    query = models.User.update(**payload).where(models.User.id == id)
+    query.execute()
+
+    updated_user = models.User.get_by_id(id)
+
+    return jsonify(data=model_to_dict(updated_user), status={"code": 200, "message": "Success"})
+
