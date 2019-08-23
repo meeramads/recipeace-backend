@@ -86,3 +86,9 @@ def update_user(id):
 
     return jsonify(data=model_to_dict(updated_user), status={"code": 200, "message": "Success"})
 
+@user.route('/<id>', methods=["DELETE"])
+def delete_user(id):
+    query = models.User.delete().where(models.User.id == id)
+    query.execute()
+
+    return jsonify(data='resources successfully deleted', status={"code": 200, "message": "Success"})
