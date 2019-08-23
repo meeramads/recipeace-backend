@@ -8,7 +8,23 @@ from flask_bcrypt import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user
 from playhouse.shortcuts import model_to_dict
 
-user = Blueprint('users', 'user', url_prefix='/user')
+user = Blueprint('user', 'user', url_prefix='/user')
+
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+
+    f_name, f_ext = os.path.splitext(form_picture.filename)
+    picture_name = random_hex + f_ext
+    file_path_for_avatar = os.path.join(os.getcwd(), 'static/profile_pics' + picture_name)
+
+    output_size = (125, 175)
+
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(file_path_for_avatar)
+
+    return picture_name
+
 
 @user.route('/register', methods=["POST"])
 def register():
@@ -27,9 +43,9 @@ def register():
         models.User.get(models.User.email == payload['email'])
 
         return jsonify(data={}, status={"code": 401, "message": "This email is already in use"})
+
     except models.DoesNotExist:
         payload['password'] = generate_password_hash(payload['password'])
-
 
         file_picture_path = save_picture(dict_file['file'])
         
@@ -49,4 +65,13 @@ def register():
 
         del user_dict['password']
 
+        return jsonify(data=user_dict, status={"code": 201, "message": "Success"})
+
     return 'hi from register'
+
+@user.route('/<id>', methods=["GET"])
+def get_one_user(id):
+    user_by_id = models.User.get_by_id(id)
+
+    return jsonify(data=model_to_dict(user_by_id), status={"code": 200, "message": "Success"})
+
