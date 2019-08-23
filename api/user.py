@@ -12,8 +12,41 @@ user = Blueprint('users', 'user', url_prefix='/user')
 
 @user.route('/register', methods=["POST"])
 def register():
+    print(request)
+    print(type(request))
     pay_file = request.files
     payload = request.form.to_dict()
     dict_file = pay_file.to_dict()
 
-return 'hi from register'
+    print(payload)
+    print(dict_file)
+
+    payload['email'].lower()
+
+    try:
+        models.User.get(models.User.email == payload['email'])
+
+        return jsonify(data={}, status={"code": 401, "message": "This email is already in use"})
+    except models.DoesNotExist:
+        payload['password'] = generate_password_hash(payload['password'])
+
+
+        file_picture_path = save_picture(dict_file['file'])
+        
+        payload['image'] = file_picture_path
+
+        user = models.User.create(**payload)
+
+        print(type(user))
+
+        login_user(user)
+
+        current_user.image = file_picture_path
+        
+        user_dict = model_to_dict(user)
+        print(user_dict)
+        print(type(user_dict))
+
+        del user_dict['password']
+
+    return 'hi from register'
