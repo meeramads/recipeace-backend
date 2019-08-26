@@ -40,6 +40,7 @@ def register():
     payload['email'].lower()
 
     try:
+        
         models.User.get(models.User.email == payload['email'])
 
         return jsonify(data={}, status={"code": 401, "message": "This email is already in use"})
@@ -53,21 +54,36 @@ def register():
 
         user = models.User.create(**payload)
 
-        print(type(user))
+        print(user, '<----- this is the new users')
 
         login_user(user)
 
         current_user.image = file_picture_path
         
         user_dict = model_to_dict(user)
-        print(user_dict)
+        print(user_dict, 'THIS IS THE USER DICT')
         print(type(user_dict))
 
         del user_dict['password']
 
         return jsonify(data=user_dict, status={"code": 201, "message": "Success"})
 
-    return 'hi from register'
+@user.route('/login', methods=["POST"])
+def login():
+    payload = request.get_json()
+    print(payload, '< --- this is playload')
+    try:
+        user = models.User.get(models.User.email== payload['email'])
+        user_dict = model_to_dict(user)
+        if(check_password_hash(user_dict['password'], payload['password'])):
+            del user_dict['password']
+            login_user(user)
+            print(user, ' this is user')
+            return jsonify(data=user_dict, status={"code": 200, "message": "Success"})
+        else:
+            return jsonify(data={}, status={"code": 401, "message": "Username or Password is incorrect"})
+    except models.DoesNotExist:
+        return jsonify(data={}, status={"code": 401, "message": "Username or Password is incorrect"})
 
 @user.route('/<id>', methods=["GET"])
 def get_one_user(id):
@@ -79,7 +95,7 @@ def get_one_user(id):
 def update_user(id):
     payload = request.get_json()
 
-    query = models.User.update(**payload).where(models.User.id == id)
+    query = models.User.update(**payload).where(models.User.id == id) 
     query.execute()
 
     updated_user = models.User.get_by_id(id)
